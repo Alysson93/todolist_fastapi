@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from schemas.UserDTO import UserResponse
+from schemas import UserResponse
 
 
 def test_create_user(client):

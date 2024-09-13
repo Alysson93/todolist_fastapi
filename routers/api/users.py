@@ -6,7 +6,8 @@ from sqlalchemy import select
 
 from database import Session, get_session
 from models import User
-from schemas.UserDTO import UserRequest, UserResponse
+from schemas import UserRequest, UserResponse
+from security import get_password_hash
 
 T_SESSION = Annotated[Session, Depends(get_session)]
 
@@ -26,7 +27,9 @@ def create_user(user: UserRequest, session: T_SESSION):
             detail='username or email already used by other user.',
         )
     db_user = User(
-        username=user.username, email=user.email, password=user.password
+        username=user.username,
+        email=user.email,
+        password=get_password_hash(user.password),
     )
     session.add(db_user)
     session.commit()
@@ -48,7 +51,7 @@ def update_user(session: T_SESSION, id: int, user: UserRequest):
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'
         )
     db_user.username = user.username
-    db_user.password = user.password
+    db_user.password = get_password_hash(user.password)
     db_user.email = user.email
     session.commit()
     session.refresh(db_user)
