@@ -33,9 +33,10 @@ def test_read_users_empty(client):
     assert response.json() == []
 
 
-def test_update_user(client, user):
+def test_update_user(client, user, token):
     response = client.put(
         '/api/users/1',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'Jane Doe',
             'email': 'jane@mail.com',
@@ -45,23 +46,28 @@ def test_update_user(client, user):
     assert response.status_code == HTTPStatus.NO_CONTENT
 
 
-def test_update_user_not_found(client):
+def test_update_user_not_found(client, token):
     response = client.put(
-        '/api/users/1',
+        '/api/users/2',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'Jane Doe',
             'email': 'jane@mail.com',
             'password': '456',
         },
     )
-    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.status_code == HTTPStatus.FORBIDDEN
 
 
-def test_delete_user(client, user):
-    response = client.delete('/api/users/1')
+def test_delete_user(client, user, token):
+    response = client.delete(
+        '/api/users/1', headers={'Authorization': f'Bearer {token}'}
+    )
     assert response.status_code == HTTPStatus.NO_CONTENT
 
 
-def test_delete_user_not_found(client):
-    response = client.delete('/api/users/1')
-    assert response.status_code == HTTPStatus.NOT_FOUND
+def test_delete_user_not_found(client, token):
+    response = client.delete(
+        '/api/users/2', headers={'Authorization': f'Bearer {token}'}
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN

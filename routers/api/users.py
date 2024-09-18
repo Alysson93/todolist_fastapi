@@ -7,9 +7,10 @@ from sqlalchemy import select
 from database import Session, get_session
 from models import User
 from schemas import UserRequest, UserResponse
-from security import get_password_hash
+from security import get_current_user, get_password_hash
 
 T_SESSION = Annotated[Session, Depends(get_session)]
+T_USER = Annotated[User, Depends(get_current_user)]
 
 router = APIRouter(prefix='/users', tags=['users'])
 
@@ -44,7 +45,13 @@ def read_users(session: T_SESSION, skip: int = 0, limit: int = 100):
 
 
 @router.put('/{id}', status_code=HTTPStatus.NO_CONTENT)
-def update_user(session: T_SESSION, id: int, user: UserRequest):
+def update_user(
+    session: T_SESSION, current_user: T_USER, id: int, user: UserRequest
+):
+    if current_user.id != id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
+        )
     db_user = session.scalar(select(User).where(User.id == id))
     if not db_user:
         raise HTTPException(
@@ -58,7 +65,11 @@ def update_user(session: T_SESSION, id: int, user: UserRequest):
 
 
 @router.delete('/{id}', status_code=HTTPStatus.NO_CONTENT)
-def delete_user(session: T_SESSION, id: int):
+def delete_user(session: T_SESSION, user: T_USER, id: int):
+    if user.id != id:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
+        )
     db_user = session.scalar(select(User).where(User.id == id))
     if not db_user:
         raise HTTPException(

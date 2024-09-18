@@ -50,3 +50,11 @@ def user(session):
     session.commit()
     session.refresh(user)
     return user
+
+
+@fixture
+def token(client, user):
+    response = client.post(
+        '/api/auth/token', data={'username': user.username, 'password': '123'}
+    )
+    return response.json()['access_token']
