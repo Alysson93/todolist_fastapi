@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
-
+from models import TodoState
 
 class UserRequest(BaseModel):
     username: str
@@ -13,6 +13,15 @@ class UserResponse(BaseModel):
     email: EmailStr
     model_config = ConfigDict(from_attributes=True)
 
+
+class TodoRequest(BaseModel):
+    title: str
+    description: str
+    state: TodoState
+
+
+class TodoResponse(TodoRequest):
+    id: int
 
 class Token(BaseModel):
     access_token: str
